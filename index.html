@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mein Training</title>
+<meta name="apple-mobile-web-app-title" content="Training">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6FB;--surface:#FFFFFF;--ink:#14213D;--muted:#5B6782;--line:#D8E0EC;
+  --accent:#2B59C3;--accent-ink:#FFFFFF;--signal:#FFC93C;--signal-ink:#14213D;--done-bg:#E4ECFA;--danger:#B93A26;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1626;--surface:#172238;--ink:#EAF0FA;--muted:#9AA8C2;--line:#2A3854;
+    --accent:#7398F2;--accent-ink:#0E1626;--signal:#FFD45E;--signal-ink:#14213D;--done-bg:#1F3157;--danger:#F08A76;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1626;--surface:#172238;--ink:#EAF0FA;--muted:#9AA8C2;--line:#2A3854;
+  --accent:#7398F2;--accent-ink:#0E1626;--signal:#FFD45E;--signal-ink:#14213D;--done-bg:#1F3157;--danger:#F08A76;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.45}
+main{max-width:560px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-weight:700;line-height:1.05;margin:0}
+h1{font-size:2.4rem;margin:8px 0 6px}
+h2{font-size:1.7rem;margin:26px 0 10px}
+h3{font-size:1.35rem}
+p{margin:0 0 12px}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.lead{color:var(--muted);margin-bottom:18px}
+.muted{color:var(--muted)}
+ol.steps-list{padding-left:1.3em;margin:0 0 20px}
+ol.steps-list li{margin-bottom:8px}
+
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:13px 18px;font-weight:600;width:100%}
+.btn.danger{background:var(--danger);color:#fff;width:auto}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:600;padding:6px 4px}
+.linkbtn.danger{color:var(--danger)}
+
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card.complete{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.card-head span{color:var(--muted);font-size:.9rem}
+
+.check{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;color:var(--ink)}
+.check:first-of-type{border-top:0}
+.box{flex:none;width:28px;height:28px;border-radius:8px;border:2.5px solid var(--accent);display:grid;place-items:center;color:var(--accent-ink)}
+.check.on .box{background:var(--accent)}
+.check .name{display:block;font-weight:600}
+.check .hint{display:block;color:var(--muted);font-size:.9rem}
+.check.on .name{text-decoration:line-through;text-decoration-color:var(--muted)}
+.target{margin-left:auto;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:1.3rem;white-space:nowrap}
+
+.ladder{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;height:120px;margin:16px 0 8px}
+.rung{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:5px}
+.rung i{display:block;width:100%;border-radius:6px 6px 2px 2px;background:var(--accent);transition:height .4s}
+.rung.now i{background:var(--signal)}
+.rung.next i{background:transparent;border:1.5px dashed var(--muted)}
+.rung small{font-size:.8rem;color:var(--muted)}
+.rung.now small{color:var(--ink);font-weight:600}
+
+.msg{background:var(--done-bg);border-radius:12px;padding:12px 14px;margin:12px 0 4px}
+label{font-weight:600;display:block;margin-bottom:6px}
+input[type=number]{font:inherit;padding:12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.rpe{display:flex;align-items:baseline;gap:10px;margin:4px 0}
+.rpe output{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:2.2rem;line-height:1}
+.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem;margin-bottom:16px}
+
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 6px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.9rem;color:var(--muted);font-weight:600}
+.plus{color:var(--accent);font-weight:600}
+
+.log{list-style:none;padding:0;margin:0}
+.log li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.zone{margin-top:36px;padding-top:14px;border-top:1px solid var(--line)}
+.zone .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+footer{margin-top:24px;color:var(--muted);font-size:.85rem}
+
+.btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+.card .btn{margin-top:12px}
+.run-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.95rem;margin-top:6px}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:10px 0 26px}
+.progress span{display:block;height:100%;background:var(--accent)}
+.big-name{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:2.6rem;line-height:1;margin:0 0 6px}
+.big-num{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:6.5rem;line-height:1;text-align:center;margin:28px 0 4px}
+.big-unit{text-align:center;color:var(--muted);font-size:1.1rem;margin-bottom:30px}
+.timer{position:relative;width:min(260px,70vw);aspect-ratio:1;margin:22px auto 26px}
+.timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.timer circle{fill:none;stroke-width:8}
+.timer .track{stroke:var(--line)}
+.timer .arc{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .25s linear}
+.timer.rest .arc{stroke:var(--signal)}
+.timer .t{position:absolute;inset:0;display:grid;place-items:center;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:4.4rem}
+.upnext{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:16px}
+.row-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.center{text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.info-btn{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font-weight:700;font-family:Georgia,"Times New Roman",serif;font-style:italic;line-height:1;padding:0}
+.info-btn[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink)}
+.info{background:var(--done-bg);border-radius:10px;padding:10px 12px;margin:2px 0 10px;font-size:.95rem}
+.ov-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.ov-row .grow{flex:1;min-width:0}
+.name-line{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.focus{color:var(--muted);font-size:.95rem;margin:-2px 0 6px}
+.chart{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{fill:var(--muted);font-size:10px;font-family:"Barlow",system-ui,sans-serif}
+.chart .val{fill:var(--ink);font-size:11px;font-weight:600;font-family:"Barlow",system-ui,sans-serif}
+.chart .line{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart .dot{fill:var(--surface);stroke:var(--accent);stroke-width:2.5}
+.chart .bar{fill:var(--accent)}
+.chart .bar.last{fill:var(--signal)}
+.filebtn{display:block;text-align:center;margin-top:10px;cursor:pointer}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+textarea{width:100%;min-height:120px;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-top:10px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+// ---------- Grunddaten ----------
+const KEY = 'meinTraining.v2';
+
+// Einstiegs- und Abschlusstest (bleibt gleich)
+const TEST = [
+  { k: 'push',   name: 'Liegestütze',           test: 'So viele saubere Wiederholungen wie möglich.', unit: 'Wiederholungen' },
+  { k: 'squat',  name: 'Kniebeugen',            test: 'So viele wie möglich in 60 Sekunden.',          unit: 'Wiederholungen' },
+  { k: 'pull',   name: 'Klimmzüge',             test: 'So viele saubere Wiederholungen wie möglich. 0 ist völlig okay.', unit: 'Wiederholungen' },
+  { k: 'plank',  name: 'Unterarmstütz (Plank)', test: 'So lange wie möglich sauber halten.',           unit: 'Sekunden' },
+  { k: 'burpee', name: 'Burpees',               test: 'So viele wie möglich in 60 Sekunden.',          unit: 'Wiederholungen' }
+];
+
+// Drei unterschiedliche Fußball-Einheiten pro Woche.
+// anchor/ratio: Der Startwert leitet sich aus einem Testergebnis ab (z. B. 35 % der Kniebeugen-Basis).
+// abs: kleine Zahlen werden absolut statt prozentual gesteigert.
+const SESS = [
+  { title: 'Schnellkraft & Antritt', ex: [
+    { k: 'a_jumpsq', name: 'Sprungkniebeugen', sets: 3, anchor: 'squat', ratio: 0.35, min: 5,
+      info: 'Geh in eine normale Kniebeuge und spring explosiv nach oben. Lande weich auf dem Vorfuß und geh direkt in die nächste Wiederholung. Trainiert die Sprungkraft für Kopfbälle und Antritte.' },
+    { k: 'a_bulg', name: 'Bulgarische Split Squats', sets: 3, side: 'Bein', anchor: 'squat', ratio: 0.35, min: 5,
+      info: 'Leg den hinteren Fuß auf Sofa oder Stuhl und senk dich langsam ab, bis das vordere Knie etwa 90 Grad gebeugt ist. Das vordere Knie bleibt über dem Fuß. Stärkt jedes Bein einzeln, wie es beim Sprint und Schuss gefordert ist.' },
+    { k: 'a_skater', name: 'Skater-Sprünge', sets: 3, side: 'Seite', anchor: 'burpee', ratio: 0.8, min: 5,
+      info: 'Spring seitlich von einem Bein aufs andere, wie ein Eisschnellläufer. Lande stabil und halte die Landung kurz. Verbessert Richtungswechsel und die Stabilität im Sprunggelenk.' },
+    { k: 'a_pull', name: 'Klimmzüge', sets: 3, anchor: 'pull', ratio: 1, min: 1, abs: true,
+      info: 'Häng dich mit schulterbreitem Griff an die Stange und zieh dich hoch, bis das Kinn über der Stange ist. Lass dich langsam wieder ab. Stärkt Rücken und Arme für Zweikämpfe und Kopfballduelle.' },
+    { k: 'a_side', name: 'Seitstütz', sets: 2, side: 'Seite', sec: true, anchor: 'plank', ratio: 0.6, min: 15,
+      info: 'Stütz dich seitlich auf den Unterarm, der Ellbogen ist unter der Schulter. Heb die Hüfte, bis der Körper eine gerade Linie bildet. Stärkt die seitliche Rumpfmuskulatur für Stabilität im Zweikampf.' }
+  ]},
+  { title: 'Kraft & Verletzungsschutz', ex: [
+    { k: 'b_nordic', name: 'Nordic Hamstring Curls', sets: 3, fixed: 3, min: 3, abs: true,
+      info: 'Knie dich hin und fixier die Fersen unter einem schweren Sofa. Lass den Oberkörper mit geradem Rumpf so langsam wie möglich nach vorn sinken und fang dich mit den Händen ab. Gilt als eine der wirksamsten Übungen gegen Zerrungen im hinteren Oberschenkel.' },
+    { k: 'b_copen', name: 'Copenhagen Plank', sets: 2, side: 'Seite', sec: true, anchor: 'plank', ratio: 0.4, min: 10,
+      info: 'Leg dich seitlich hin und leg das obere Bein mit dem Knie (leichter) oder dem Fuß (schwerer) auf einen Stuhl. Stütz dich auf den Unterarm und heb die Hüfte an. Stärkt die Adduktoren und beugt Leistenproblemen vor.' },
+    { k: 'b_bridge', name: 'Einbeinige Hüftbrücke', sets: 3, side: 'Bein', anchor: 'squat', ratio: 0.4, min: 6,
+      info: 'Leg dich auf den Rücken, ein Fuß steht auf, das andere Bein ist gestreckt. Drück die Hüfte über die Ferse nach oben, bis Schulter, Hüfte und Knie eine Linie bilden. Stärkt Gesäß und hinteren Oberschenkel für schnelle Sprints.' },
+    { k: 'b_push', name: 'Liegestütze', sets: 3, anchor: 'push', ratio: 1, min: 3,
+      info: 'Hände etwas breiter als schulterbreit, der Körper bleibt gerade wie ein Brett. Senk die Brust bis kurz über den Boden und drück dich wieder hoch. Bei Bedarf auf den Knien ausführen.' },
+    { k: 'b_knee', name: 'Hängendes Knieheben', sets: 3, anchor: 'plank', ratio: 0.15, min: 5, abs: true,
+      info: 'Häng dich an die Klimmzugstange und zieh die Knie kontrolliert Richtung Brust. Vermeide Schwung und lass die Beine langsam wieder ab. Stärkt Bauch und Hüftbeuger für einen kraftvollen Schuss.' }
+  ]},
+  { title: 'Ausdauer & Stabilität', ex: [
+    { k: 'c_burpee', name: 'Burpees', sets: 3, anchor: 'burpee', ratio: 1, min: 5,
+      info: 'Geh in die Hocke, spring in die Liegestützposition, zurück in die Hocke und spring hoch. Halte ein gleichmäßiges Tempo. Trainiert die Ausdauer für intensive Spielphasen.' },
+    { k: 'c_climb', name: 'Mountain Climbers', sets: 3, sec: true, anchor: 'plank', ratio: 0.6, min: 20,
+      info: 'Stütz dich wie beim Liegestütz und zieh die Knie abwechselnd schnell zur Brust. Die Hüfte bleibt tief und ruhig. Trainiert Rumpf und Laufrhythmus unter Belastung.' },
+    { k: 'c_lunge', name: 'Ausfallschritt-Sprünge', sets: 3, anchor: 'squat', ratio: 0.4, min: 6,
+      info: 'Starte im Ausfallschritt und wechsle im Sprung das vordere Bein. Lande weich und halte das vordere Knie stabil über dem Fuß. Verbessert Sprungkraft und Koordination.' },
+    { k: 'c_rdl', name: 'Einbeiniges Kreuzheben', sets: 3, side: 'Bein', anchor: 'squat', ratio: 0.3, min: 6,
+      info: 'Steh auf einem Bein und kipp den Oberkörper mit geradem Rücken nach vorn, während das freie Bein nach hinten geht. Richte dich langsam wieder auf. Schult das Gleichgewicht und stärkt den hinteren Oberschenkel.' },
+    { k: 'c_calf', name: 'Einbeiniges Wadenheben', sets: 3, side: 'Bein', anchor: 'squat', ratio: 0.5, min: 8,
+      info: 'Stell dich mit dem Vorfuß eines Beins auf eine Treppenstufe und halt dich leicht fest. Drück dich ganz nach oben und senk die Ferse langsam unter die Stufe ab. Stärkt Waden und Achillessehne für Sprints und Sprünge.' }
+  ]}
+];
+const NEG_INFO = 'Spring hoch, sodass dein Kinn über der Stange ist, und lass dich 3–5 Sekunden langsam ab. So baust du die Kraft für echte Klimmzüge auf.';
+// Geführtes Aufwärmen (core = auch in der Kurzversion)
+const WARM = [
+  { k: 'w_run', name: 'Lockeres Laufen auf der Stelle', dur: 60, core: true, sec: true,
+    info: 'Lauf locker auf der Stelle und schwing die Arme mit. Steigere das Tempo zum Ende hin leicht. Bringt den Kreislauf in Schwung.' },
+  { k: 'w_jack', name: 'Hampelmann', dur: 30, core: true, sec: true,
+    info: 'Spring mit gegrätschten Beinen und Armen über dem Kopf, dann zurück in die Ausgangsposition. Bleib locker auf dem Vorfuß. Erhöht Puls und Körpertemperatur.' },
+  { k: 'w_swing', name: 'Beinschwingen vor und zurück', dur: 40, core: true, sec: true,
+    info: 'Halt dich an einer Wand fest und schwing ein gestrecktes Bein locker vor und zurück. Nach der Hälfte der Zeit wechselst du das Bein. Mobilisiert Hüfte und hinteren Oberschenkel.' },
+  { k: 'w_side', name: 'Beinschwingen seitlich', dur: 40, core: true, sec: true,
+    info: 'Stell dich frontal zur Wand und schwing ein Bein seitlich vor dem Körper hin und her. Nach der Hälfte der Zeit Bein wechseln. Öffnet die Hüfte und bereitet die Adduktoren vor.' },
+  { k: 'w_lunge', name: 'Ausfallschritt mit Rumpfdrehung', dur: 40, sec: true,
+    info: 'Mach einen großen Schritt nach vorn und dreh den Oberkörper zum vorderen Bein. Zurück in den Stand und Seite wechseln. Dehnt die Hüftbeuger und mobilisiert die Wirbelsäule.' },
+  { k: 'w_hip', name: 'Hüftkreisen', dur: 30, sec: true,
+    info: 'Stell dich hüftbreit hin, Hände an der Hüfte, und kreise die Hüfte langsam. Nach der Hälfte der Zeit wechselst du die Richtung. Lockert Hüfte und unteren Rücken.' },
+  { k: 'w_skip', name: 'Skippings', dur: 30, core: true, sec: true,
+    info: 'Lauf auf der Stelle und zieh die Knie schnell bis auf Hüfthöhe. Bleib aufrecht und arbeite aktiv mit den Armen. Aktiviert Hüftbeuger und Laufkoordination.' },
+  { k: 'w_heel', name: 'Anfersen', dur: 30, sec: true,
+    info: 'Lauf auf der Stelle und führ die Fersen zügig Richtung Gesäß. Der Oberkörper bleibt aufrecht. Lockert den vorderen Oberschenkel und bereitet auf Sprints vor.' }
+];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const warmFor = short => WARM.filter(w => !short || w.core);
+const CHECK = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function blank() {
+  return { phase: 'intro', test: null, base: null, pullNeg: false, week: 1, mult: [1], checks: {}, log: [], final: null, lastMsg: '', run: null, history: [] };
+}
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.phase) return s; } catch (e) {}
+  return blank();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+let state = load();
+// Alte Version mit gleichen Übungen: laufendes Training verwerfen
+if (state.run && !state.run.t) state.run = null;
+// Testverlauf nachrüsten, falls aus älterer Version
+if (!state.history) {
+  state.history = [];
+  if (state.test) state.history.push({ date: null, v: state.test });
+  if (state.final) state.history.push({ date: null, v: state.final });
+}
+const ui = { confirmReset: false, info: null, progress: false, chartEx: 'push', backupMsg: '', exportText: false, pendingImport: null };
+
+// Datei-Speichern über claude.ai (falls verfügbar)
+let downloadsApi = null;
+(async () => {
+  try { if (window.claude && window.claude.use) { downloadsApi = await window.claude.use('downloads'); if (downloadsApi) render(); } } catch (e) {}
+})();
+const app = document.getElementById('app');
+
+// ---------- Regeln: Basiswerte aus dem Test ----------
+function setupFrom(t) {
+  // Je anstrengender der Test, desto vorsichtiger der Einstieg
+  const f = t.rpe >= 9 ? 0.5 : t.rpe <= 5 ? 0.7 : 0.6;
+  const b = {};
+  TEST.forEach(e => {
+    let v = t[e.k] * f;
+    if (e.k === 'plank') v = Math.max(15, v);
+    else if (e.k === 'squat') v = Math.max(5, v);
+    else if (e.k === 'pull') v = t.pull === 0 ? 3 : Math.max(1, v);
+    else v = Math.max(3, v);
+    b[e.k] = v;
+  });
+  Object.assign(state, { test: t, base: b, pullNeg: t.pull === 0, week: 1, mult: [1], checks: {}, log: [], final: null, lastMsg: '', phase: 'plan', run: null });
+}
+
+// Zielwert einer Übung in einer Woche (als Zahl)
+function targetVal(e, mult) {
+  const b = Math.max(e.min, e.anchor ? state.base[e.anchor] * e.ratio : e.fixed);
+  const v = e.abs ? b + (mult - 1) * Math.max(b, 5) : b * mult;
+  if (e.sec) return Math.max(10, Math.round(v / 5) * 5);
+  return Math.max(1, Math.round(v));
+}
+// Kurzversion: etwa halb so viele Sätze (3 → 2, 2 → 1)
+const setsOf = (e, short) => short ? Math.max(1, Math.ceil(e.sets / 2)) : e.sets;
+function target(e, mult, short) {
+  return setsOf(e, short) + ' × ' + targetVal(e, mult) + (e.sec ? ' Sek.' : '') + (e.side ? ' je ' + e.side : '');
+}
+const ALL = [...WARM, ...SESS.flatMap(s => s.ex)];
+const exOf = k => ALL.find(x => x.k === k);
+function exName(e) { return e.k === 'a_pull' && state.pullNeg ? 'Negative Klimmzüge' : e.name; }
+function exInfo(e) { return e.k === 'a_pull' && state.pullNeg ? NEG_INFO : e.info; }
+function infoBtn(e) {
+  return `<button class="info-btn" data-action="info" data-k="${e.k}" aria-expanded="${ui.info === e.k}" aria-label="Erklärung zu ${exName(e)}">i</button>`;
+}
+function infoBox(e) { return ui.info === e.k ? `<div class="info">${exInfo(e)}</div>` : ''; }
+
+// ---------- Regeln: Wochen-Check ----------
+function closeWeek(rpe) {
+  const w = state.week;
+  let done = 0;
+  for (let t = 1; t <= 3; t++) if ((state.checks[`w${w}t${t}`] || []).length === SESS[t - 1].ex.length) done++;
+  let delta, msg;
+  if (done < 2)      { delta = 0;     msg = `Nur ${done} von 3 Trainings geschafft – die nächste Woche bleibt auf gleichem Niveau.`; }
+  else if (rpe <= 5) { delta = 0.15;  msg = 'Fiel dir leicht – nächste Woche geht es um 15 % hoch.'; }
+  else if (rpe <= 7) { delta = 0.10;  msg = 'Gut fordernd – nächste Woche geht es um 10 % hoch.'; }
+  else if (rpe === 8){ delta = 0.05;  msg = 'Ordentlich anstrengend – nächste Woche nur 5 % mehr.'; }
+  else               { delta = -0.05; msg = 'Sehr hart – nächste Woche wird es etwas leichter (−5 %).'; }
+  state.log.push({ week: w, rpe, done, delta });
+  if (w === 6) { state.phase = 'final'; state.lastMsg = ''; }
+  else {
+    state.mult[w] = Math.max(0.6, state.mult[w - 1] * (1 + delta));
+    state.week = w + 1;
+    state.lastMsg = msg;
+  }
+}
+
+// ---------- Bildschirme ----------
+function intro() {
+  return `<h1>Mein Training</h1>
+  <p class="lead">Ein 6-Wochen-Plan für Fußballer, zu Hause mit Körpergewicht und Klimmzugstange.</p>
+  <ol class="steps-list">
+    <li>Einstiegstest machen und Ergebnisse eintragen.</li>
+    <li>Die App erstellt daraus deinen Plan: 3 unterschiedliche Einheiten pro Woche.</li>
+    <li>Jede Woche bewertest du die Anstrengung, und der Plan passt sich an.</li>
+    <li>Nach 6 Wochen machst du den Test noch einmal und siehst deinen Fortschritt.</li>
+  </ol>
+  <button class="btn" data-action="go-test">Einstiegstest starten</button>
+  ${ui.backupMsg ? `<div class="msg">${ui.backupMsg}</div>` : ''}
+  ${importBlock()}
+  <footer>Die Daten werden nur auf diesem Gerät gespeichert.</footer>`;
+}
+
+function rpeField(id, value) {
+  return `<div class="rpe"><output id="${id}-out">${value}</output><span class="muted">von 10</span></div>
+    <input type="range" id="${id}" name="rpe" min="1" max="10" value="${value}" aria-label="Anstrengung von 1 bis 10">
+    <div class="scale"><span>1 = sehr leicht</span><span>10 = am Limit</span></div>`;
+}
+
+function testView(isFinal) {
+  return `<h1>${isFinal ? 'Abschlusstest' : 'Einstiegstest'}</h1>
+  <p class="lead">Wärm dich 5 Minuten auf, zum Beispiel mit Hampelmann und Armkreisen. Mach die Übungen nacheinander mit 2–3 Minuten Pause. Saubere Ausführung zählt mehr als Tempo.</p>
+  <form id="test">
+    ${TEST.map(e => `<div class="card">
+      <h3>${e.name}</h3>
+      <p class="muted">${e.test}</p>
+      <label for="t-${e.k}">${e.unit}</label>
+      <input type="number" id="t-${e.k}" name="${e.k}" min="0" max="999" inputmode="numeric" required>
+    </div>`).join('')}
+    <div class="card">
+      <h3>Wie anstrengend war der Test insgesamt?</h3>
+      ${rpeField('test-rpe', 7)}
+    </div>
+    <button class="btn" type="submit">${isFinal ? 'Ergebnis vergleichen' : 'Plan erstellen'}</button>
+  </form>
+  ${isFinal ? '' : '<button class="linkbtn" data-action="go-intro">Zurück</button>'}`;
+}
+
+function ladder() {
+  const w = state.week, known = state.mult.length;
+  const vals = [];
+  for (let i = 0; i < 6; i++) vals.push(i < known ? state.mult[i] : state.mult[known - 1] * Math.pow(1.1, i - known + 1));
+  const max = Math.max(...vals);
+  return `<div class="ladder" aria-hidden="true">${vals.map((v, i) => {
+    const cls = state.phase !== 'plan' || i < w - 1 ? 'past' : i === w - 1 ? 'now' : 'next';
+    return `<div class="rung ${cls}"><i style="height:${Math.max(18, v / max * 100)}%"></i><small>W${i + 1}</small></div>`;
+  }).join('')}</div>`;
+}
+
+function planView() {
+  const w = state.week, m = state.mult[w - 1];
+  let doneSessions = 0;
+  const cards = SESS.map((sess, idx) => {
+    const t = idx + 1, id = `w${w}t${t}`, checked = state.checks[id] || [];
+    const complete = sess.ex.every(e => checked.includes(e.k));
+    const count = sess.ex.filter(e => checked.includes(e.k)).length;
+    if (complete) doneSessions++;
+    return `<div class="card ${complete ? 'complete' : ''}">
+      <div class="card-head"><h3>Training ${t}</h3><span>${complete ? 'Erledigt' : count + ' von ' + sess.ex.length}</span></div>
+      <p class="focus">${sess.title} – ca. ${duration(t)} Min.</p>
+      ${sess.ex.map(e => {
+        const on = checked.includes(e.k);
+        return `<button class="check ${on ? 'on' : ''}" data-action="check" data-s="${id}" data-k="${e.k}" aria-pressed="${on}">
+          <span class="box">${on ? CHECK : ''}</span>
+          <span class="name">${exName(e)}</span>
+          <span class="target">${target(e, m)}</span>
+        </button>`;
+      }).join('')}
+      <button class="btn ${complete ? 'ghost' : ''}" data-action="start" data-t="${t}">${complete ? 'Nochmal trainieren' : 'Training starten'}</button>
+      <button class="btn ghost" data-action="start" data-t="${t}" data-short="1">Kurzversion – ca. ${duration(t, true)} Min.</button>
+    </div>`;
+  }).join('');
+
+  const log = state.log.length ? `<h2>Bisherige Wochen</h2><ul class="log">${state.log.map(l =>
+    `<li><span>Woche ${l.week}: ${l.done} von 3 Trainings, Anstrengung ${l.rpe}</span>
+     <span class="${l.delta > 0 ? 'plus' : 'muted'}">${l.delta > 0 ? '+' : l.delta < 0 ? '−' : '±'}${Math.abs(Math.round(l.delta * 100))} %</span></li>`).join('')}</ul>` : '';
+
+  return `<h1>Woche ${w} von 6</h1>
+  <p class="lead">3 Einheiten pro Woche, mit mindestens einem Ruhetag dazwischen. Plane sie so, dass sie nicht direkt vor einem Spiel liegen.</p>
+  ${ladder()}
+  <p class="center"><button class="linkbtn" data-action="progress">Fortschritt ansehen</button></p>
+  ${state.lastMsg ? `<div class="msg">${state.lastMsg}</div>` : ''}
+  <h2>Deine Trainings</h2>
+  ${cards}
+  <h2>Woche abschließen</h2>
+  <div class="card">
+    <p>Geschafft: ${doneSessions} von 3 Trainings. Wie anstrengend war die Woche insgesamt?</p>
+    ${rpeField('week-rpe', 7)}
+    <button class="btn" data-action="close-week">Woche ${w} abschließen</button>
+  </div>
+  ${log}
+  ${resetZone()}`;
+}
+
+function doneView() {
+  const t = state.test, f = state.final;
+  const rows = TEST.map(e => {
+    const d = f[e.k] - t[e.k];
+    return `<tr><td>${e.name}</td><td>${t[e.k]}</td><td>${f[e.k]}</td>
+      <td class="${d > 0 ? 'plus' : ''}">${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)}</td></tr>`;
+  }).join('');
+  return `<h1>6 Wochen geschafft</h1>
+  <p class="lead">So hast du dich seit dem Einstiegstest verändert.</p>
+  ${ladder()}
+  <p class="center"><button class="linkbtn" data-action="progress">Fortschritt ansehen</button></p>
+  <div class="card wrap"><table>
+    <thead><tr><th>Übung</th><th>Vorher</th><th>Nachher</th><th>Differenz</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <p class="muted" style="margin-top:10px">Plank in Sekunden, alle anderen in Wiederholungen.</p></div>
+  <button class="btn" data-action="new-cycle">Neuen 6-Wochen-Plan starten</button>
+  <p class="muted" style="margin-top:10px">Der neue Plan startet mit deinen Werten aus dem Abschlusstest.</p>
+  ${resetZone()}`;
+}
+
+// ---------- Fortschritt ----------
+const dateLabel = d => d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '';
+
+function levelChart() {
+  const vals = (state.phase === 'plan' ? state.mult.slice(0, state.week) : state.mult).map(v => Math.round(v * 100));
+  const W = 320, H = 180, L = 40, R = 14, T = 20, B = 28;
+  const lo = Math.min(90, Math.floor(Math.min(...vals) / 10) * 10);
+  const hi = Math.max(130, Math.ceil(Math.max(...vals) / 10) * 10);
+  const x = i => L + (W - L - R) * i / 5;
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const grid = [lo, 100, hi].map(t => `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/>
+    <text class="axis" x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${t} %</text>`).join('');
+  const weeks = [0, 1, 2, 3, 4, 5].map(i => `<text class="axis" x="${x(i)}" y="${H - 8}" text-anchor="middle">W${i + 1}</text>`).join('');
+  const pts = vals.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+  const dots = vals.map((v, i) => `<circle class="dot" cx="${x(i)}" cy="${y(v)}" r="4"/>
+    <text class="val" x="${x(i)}" y="${y(v) - 9}" text-anchor="middle">${v}</text>`).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Trainingsniveau pro Woche: ${vals.join(', ')} Prozent">
+    ${grid}${weeks}${vals.length > 1 ? `<polyline class="line" points="${pts}"/>` : ''}${dots}</svg>`;
+}
+
+function testChart(e) {
+  const h = state.history || [];
+  if (!h.length) return '<p class="muted">Noch keine Testergebnisse.</p>';
+  const W = 320, H = 180, T = 22, B = 28, L = 8, R = 8;
+  const vals = h.map(x => x.v[e.k]), max = Math.max(...vals, 1), n = h.length;
+  const slot = (W - L - R) / n, bw = Math.min(56, slot * 0.6);
+  const bars = h.map((x, i) => {
+    const bh = (H - T - B) * vals[i] / max, cx = L + slot * i + slot / 2, by = H - B - bh;
+    return `<rect class="bar ${i === n - 1 && n > 1 ? 'last' : ''}" x="${cx - bw / 2}" y="${by}" width="${bw}" height="${Math.max(1, bh)}" rx="4"/>
+      <text class="val" x="${cx}" y="${by - 6}" text-anchor="middle">${vals[i]}</text>
+      <text class="axis" x="${cx}" y="${H - 8}" text-anchor="middle">${x.date ? dateLabel(x.date) : 'Test ' + (i + 1)}</text>`;
+  }).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${e.name}: ${vals.join(', ')} ${e.unit}">
+    <line class="grid" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>${bars}</svg>
+    <p class="muted">${e.unit}</p>`;
+}
+
+function progressView() {
+  const h = state.history || [], ex = TEST.find(x => x.k === ui.chartEx);
+  return `<h1>Fortschritt</h1>
+  <p class="lead">Dein Trainingsniveau im aktuellen 6-Wochen-Plan und deine Testergebnisse im Vergleich.</p>
+  <h2>Trainingsniveau</h2>
+  <div class="card">${levelChart()}<p class="muted">100 % ist dein Startniveau nach dem Test. Jeder Punkt ist eine Woche.</p></div>
+  <h2>Testergebnisse</h2>
+  <div class="chips">${TEST.map(x => `<button class="chip" data-action="chart-ex" data-k="${x.k}" aria-pressed="${x.k === ui.chartEx}">${x.name.replace(' (Plank)', '')}</button>`).join('')}</div>
+  <div class="card" style="margin-top:12px">${testChart(ex)}
+    ${h.length < 2 ? '<p class="muted">Nach deinem Abschlusstest siehst du hier den Vergleich.</p>' : ''}</div>
+  <button class="btn ghost" data-action="progress">Zurück</button>`;
+}
+
+// ---------- Datensicherung ----------
+function backupJson() {
+  return JSON.stringify({ app: 'mein-training', version: 2, saved: new Date().toISOString(), data: { ...state, run: null } });
+}
+async function exportBackup() {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const name = `mein-training-sicherung-${today}.json`, json = backupJson();
+    if (downloadsApi) await downloadsApi.save({ filename: name, data: json });
+    else {
+      // Außerhalb von claude.ai (z. B. GitHub Pages): normaler Browser-Download
+      const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    state.lastBackup = today;
+    ui.backupMsg = 'Sicherung gespeichert.';
+  } catch (err) {
+    const c = err && err.code;
+    ui.backupMsg = c === 'declined' ? 'Speichern abgebrochen.'
+      : c === 'rate_limited' ? 'Gerade läuft schon ein Speichervorgang. Versuch es gleich noch einmal.'
+      : 'Speichern ist hier gerade nicht möglich. Nutze „Als Text anzeigen“ und kopiere den Text zum Beispiel in deine Notizen.';
+  }
+  save(); render();
+}
+function readImport(text) {
+  try {
+    const w = JSON.parse(text);
+    const d = w && w.app === 'mein-training' ? w.data : null;
+    if (!d || !d.phase || !Array.isArray(d.mult)) throw new Error('ungültig');
+    ui.pendingImport = { data: d, saved: w.saved };
+    ui.backupMsg = '';
+  } catch (e) {
+    ui.pendingImport = null;
+    ui.backupMsg = 'Diese Datei ist keine gültige Sicherung von „Mein Training“.';
+  }
+  render();
+}
+function importBlock() {
+  if (ui.pendingImport) {
+    const d = ui.pendingImport.saved ? dateLabel(ui.pendingImport.saved.slice(0, 10)) : '';
+    return `<div class="msg">Sicherung${d ? ' vom ' + d : ''} laden? Dein aktueller Stand auf diesem Gerät wird dabei ersetzt.</div>
+      <div class="actions"><button class="btn" style="width:auto" data-action="import-confirm">Ja, Sicherung laden</button>
+      <button class="linkbtn" data-action="import-cancel">Abbrechen</button></div>`;
+  }
+  return `<label class="btn ghost filebtn" for="import-file">Sicherung laden</label>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>`;
+}
+function backupZone() {
+  const last = state.lastBackup ? `Letzte Sicherung: ${dateLabel(state.lastBackup)}` : 'Noch keine Sicherung gespeichert.';
+  return `<h2>Datensicherung</h2>
+  <div class="card">
+    <p><b>${last}</b></p>
+    <p class="muted">Deine Daten liegen nur auf diesem Gerät. Speichere am besten nach jedem Wochen-Check eine Sicherung, zum Beispiel in der Dateien-App oder in iCloud.</p>
+    ${ui.backupMsg ? `<div class="msg">${ui.backupMsg}</div>` : ''}
+    ${downloadsApi || !window.claude ? `<button class="btn" data-action="export">Sicherung speichern</button>` : ''}
+    ${importBlock()}
+    <p class="center"><button class="linkbtn" data-action="export-text">${ui.exportText ? 'Text ausblenden' : 'Als Text anzeigen'}</button></p>
+    ${ui.exportText ? `<textarea id="backup-text" readonly aria-label="Sicherung als Text">${esc(backupJson())}</textarea>
+      <p class="muted">Text markieren, kopieren und zum Beispiel in einer Notiz ablegen. Zum Wiederherstellen als .json-Datei speichern und über „Sicherung laden“ öffnen.</p>` : ''}
+  </div>`;
+}
+
+function resetZone() {
+  return `${backupZone()}<div class="zone">${ui.confirmReset
+    ? `<p>Test, Plan und alle Häkchen löschen und von vorn beginnen?</p>
+       <div class="actions"><button class="btn danger" data-action="reset">Ja, alles löschen</button>
+       <button class="linkbtn" data-action="cancel-reset">Abbrechen</button></div>`
+    : `<button class="linkbtn danger" data-action="ask-reset">Alles zurücksetzen</button>`}</div>
+    <footer>Die Daten werden nur auf diesem Gerät gespeichert.</footer>`;
+}
+
+// ---------- Geführtes Training ----------
+const REST_SET = 60, REST_EX = 90, REST_SWITCH = 10;   // Pausen in Sekunden
+const SHORT_REST_SET = 45, SHORT_REST_EX = 60;        // Pausen in der Kurzversion
+const C = 2 * Math.PI * 45;                            // Umfang des Timer-Rings
+
+function buildSteps(t, short) {
+  const m = state.mult[state.week - 1], ex = SESS[t - 1].ex, steps = [];
+  const warm = warmFor(short);
+  warm.forEach((w, n) => steps.push({ t: 'work', k: w.k, val: w.dur, warm: true, wi: n + 1, wn: warm.length }));
+  ex.forEach((e, i) => {
+    const val = targetVal(e, m), sets = setsOf(e, short);
+    for (let s = 1; s <= sets; s++) {
+      if (e.sec && e.side) {
+        // Halteübungen pro Seite: rechts, kurzer Seitenwechsel, links
+        steps.push({ t: 'work', k: e.k, set: s, val, side: 'rechte Seite' });
+        steps.push({ t: 'rest', sec: REST_SWITCH, sw: true });
+        steps.push({ t: 'work', k: e.k, set: s, val, side: 'linke Seite' });
+      } else steps.push({ t: 'work', k: e.k, set: s, val });
+      const last = i === ex.length - 1 && s === sets;
+      if (!last) steps.push({ t: 'rest', sec: s === sets ? (short ? SHORT_REST_EX : REST_EX) : (short ? SHORT_REST_SET : REST_SET) });
+    }
+  });
+  return steps;
+}
+const fmt = sec => sec >= 60 ? Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0') : String(sec);
+function stepText(e, st) {
+  let s = e.sec ? st.val + ' Sek.' : st.val + ' Wiederholungen';
+  if (st.side) s += ', ' + st.side; else if (e.side) s += ' je ' + e.side;
+  return s;
+}
+
+// Ungefähre Dauer einer Einheit in Minuten: Aufwärmen + Übungen (ca. 3 Sek. pro Wiederholung) + alle Pausen
+function duration(t, short) {
+  let sec = 0;
+  buildSteps(t, short).forEach(st => {
+    if (st.t === 'rest') sec += st.sec;
+    else { const e = exOf(st.k); sec += e.sec ? st.val : st.val * 3 * (e.side ? 2 : 1); }
+  });
+  return Math.max(5, Math.round(sec / 300) * 5);
+}
+
+function timerRing(left, total, isRest) {
+  const off = total ? C * (1 - left / total) : 0;
+  return `<div class="timer ${isRest ? 'rest' : ''}" role="timer" aria-live="off">
+    <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/>
+    <circle class="arc" id="arc" cx="50" cy="50" r="45" stroke-dasharray="${C}" style="stroke-dashoffset:${off}"/></svg>
+    <div class="t" id="t">${fmt(Math.ceil(left))}</div></div>`;
+}
+
+function runView() {
+  const r = state.run, w = state.week, sess = SESS[r.t - 1];
+  const title = `Training ${r.t}${r.short ? ' (Kurzversion)' : ''} · Woche ${w}`;
+
+  // Gesamtübersicht
+  if (r.idx < 0) {
+    const m = state.mult[w - 1];
+    return `<h1>${title}</h1>
+      <p class="focus">${sess.title} – ca. ${duration(r.t, r.short)} Min. inklusive Aufwärmen und Pausen</p>
+      <p class="lead">${r.short ? 'Kurzversion: weniger Sätze, kürzere Pausen. ' : ''}Zuerst kommt ein geführtes Aufwärmen, danach führt dich die App durch jede Übung, Satz für Satz. Pause: ${r.short ? SHORT_REST_SET : REST_SET} Sek. zwischen den Sätzen, ${r.short ? SHORT_REST_EX : REST_EX} Sek. zwischen den Übungen. Tipp auf „i“ für eine Erklärung.</p>
+      <div class="card"><div class="ov-row"><div class="grow"><b>Aufwärmen</b><br><span class="muted">${warmFor(r.short).length} Übungen, ca. ${Math.round(warmFor(r.short).reduce((a, w) => a + w.dur, 0) / 60)} Min. mit Timer</span></div></div>${sess.ex.map(e => `<div class="ov-row">
+          <div class="grow"><b>${exName(e)}</b><br><span class="muted">${target(e, m, r.short)}</span></div>${infoBtn(e)}
+        </div>${infoBox(e)}`).join('')}</div>
+      <button class="btn" data-action="go">Weiter</button>
+      <p class="center"><button class="linkbtn" data-action="abort">Zurück zur Woche</button></p>`;
+  }
+
+  // Abschluss
+  if (r.idx >= r.steps.length) {
+    return `<h1>Training geschafft!</h1>
+      <p class="lead">Alle Übungen von ${title} sind erledigt. Trink etwas und dehn dich kurz.</p>
+      <button class="btn" data-action="finish">Zurück zur Woche</button>`;
+  }
+
+  const cur = r.steps[r.idx];
+  const pct = Math.round(r.idx / r.steps.length * 100);
+  const top = label => `<div class="run-top"><span>${label}</span><button class="linkbtn danger" data-action="abort">Abbrechen</button></div>
+    <div class="progress"><span style="width:${pct}%"></span></div>`;
+
+  // Pause oder Seitenwechsel
+  if (cur.t === 'rest') {
+    const nx = r.steps[r.idx + 1], ne = exOf(nx.k);
+    const left = Math.max(0, (r.endAt - Date.now()) / 1000);
+    const label = cur.sw ? 'Seitenwechsel' : 'Pause';
+    return `${top(label)}
+      <h1 class="center">${label}</h1>
+      ${timerRing(left, r.total, true)}
+      <div class="upnext"><span class="muted">Als Nächstes</span><br><b>${exName(ne)}</b> – Satz ${nx.set} von ${setsOf(ne, r.short)}: ${stepText(ne, nx)}</div>
+      <div class="row-btns"><button class="btn ghost" data-action="more-rest">+15 Sek.</button>
+      <button class="btn" data-action="next">Weiter</button></div>`;
+  }
+
+  // Aufwärmen
+  if (cur.warm) {
+    const e = exOf(cur.k), nx = r.steps[r.idx + 1], ne = nx && exOf(nx.k);
+    const left = r.endAt ? Math.max(0, (r.endAt - Date.now()) / 1000) : cur.val;
+    return `${top(`Aufwärmen · ${cur.wi} von ${cur.wn}`)}
+      <div class="name-line"><h2 class="big-name">${e.name}</h2>${infoBtn(e)}</div>
+      ${infoBox(e)}
+      ${timerRing(left, cur.val, false)}
+      ${ne ? `<div class="upnext"><span class="muted">Als Nächstes</span><br><b>${exName(ne)}</b>${nx.warm ? '' : ' – dann beginnt das Training'}</div>` : ''}
+      <div class="row-btns"><button class="btn ghost" data-action="skip-warm">Überspringen</button>
+      <button class="btn" data-action="next">Weiter</button></div>`;
+  }
+
+  // Übung
+  const e = exOf(cur.k), i = sess.ex.indexOf(e);
+  const head = `${top(`Übung ${i + 1} von ${sess.ex.length} · Satz ${cur.set} von ${setsOf(e, r.short)}`)}
+    <div class="name-line"><h2 class="big-name">${exName(e)}</h2>${infoBtn(e)}</div>
+    ${infoBox(e)}
+    ${cur.side ? `<p class="muted">${cur.side}</p>` : ''}`;
+
+  if (e.sec) {
+    const running = !!r.endAt;
+    const left = running ? Math.max(0, (r.endAt - Date.now()) / 1000) : cur.val;
+    return `${head}
+      ${timerRing(left, cur.val, false)}
+      ${running
+        ? `<button class="btn ghost" data-action="next">Satz beenden</button>`
+        : `<button class="btn" data-action="start-timer">Timer starten (${cur.val} Sek.)</button>
+           <p class="center"><button class="linkbtn" data-action="next">Ohne Timer abhaken</button></p>`}`;
+  }
+  return `${head}
+    <div class="big-num">${cur.val}</div><div class="big-unit">Wiederholungen${e.side ? ' je ' + e.side : ''}</div>
+    <button class="btn" data-action="next">Satz geschafft</button>`;
+}
+
+function advance() {
+  const r = state.run, cur = r.steps[r.idx];
+  // Letzter Satz einer Übung → Übung in der Wochenübersicht abhaken
+  if (cur && cur.t === 'work' && !cur.warm && cur.set === setsOf(exOf(cur.k), r.short) && (!cur.side || cur.side === 'linke Seite')) {
+    const arr = state.checks[r.s] || [];
+    if (!arr.includes(cur.k)) state.checks[r.s] = [...arr, cur.k];
+  }
+  r.idx++; r.endAt = null; ui.info = null;
+  const nx = r.steps[r.idx];
+  if (nx && nx.t === 'rest') { r.total = nx.sec; r.endAt = Date.now() + nx.sec * 1000; }
+  // Aufwärmübungen starten ihren Timer automatisch
+  if (nx && nx.warm) { r.total = nx.val; r.endAt = Date.now() + nx.val * 1000; }
+  if (r.idx >= r.steps.length) releaseWake();
+  save(); render(); window.scrollTo(0, 0);
+}
+
+// Läuft im Hintergrund: aktualisiert Timer, springt bei 0 weiter
+setInterval(() => {
+  const r = state.run;
+  if (!r || !r.endAt || r.idx < 0 || r.idx >= r.steps.length) return;
+  const left = Math.max(0, (r.endAt - Date.now()) / 1000);
+  const t = document.getElementById('t'), arc = document.getElementById('arc');
+  if (t) t.textContent = fmt(Math.ceil(left));
+  if (arc) arc.style.strokeDashoffset = C * (1 - left / r.total);
+  if (left <= 0) { beep(); advance(); }
+}, 250);
+
+// Signalton (iPhone: nur hörbar, wenn der Lautlos-Schalter aus ist)
+let actx = null;
+function unlockAudio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {} }
+function beep() {
+  if (!actx) return;
+  try {
+    [0, 0.25].forEach(d => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + d;
+      o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.start(t); o.stop(t + 0.2);
+    });
+  } catch (e) {}
+}
+
+// Bildschirm während des Trainings anlassen (wenn das Gerät es erlaubt)
+let wake = null;
+async function keepAwake() { try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch (e) {} }
+function releaseWake() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+document.addEventListener('visibilitychange', () => {
+  const r = state.run;
+  if (document.visibilityState === 'visible' && r && r.idx >= 0 && r.idx < r.steps.length) keepAwake();
+});
+
+function render() {
+  const views = { intro, test: () => testView(false), plan: planView, final: () => testView(true), done: doneView };
+  app.innerHTML = ui.progress && state.history.length ? progressView()
+    : state.phase === 'plan' && state.run ? runView() : views[state.phase]();
+}
+
+// ---------- Bedienung ----------
+app.addEventListener('input', e => {
+  if (e.target.type === 'range') { const o = document.getElementById(e.target.id + '-out'); if (o) o.textContent = e.target.value; }
+});
+
+app.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]');
+  if (!b) return;
+  const a = b.dataset.action;
+  let scrollTop = false;
+  if (a === 'go-test') { state.phase = 'test'; scrollTop = true; }
+  else if (a === 'go-intro') { state.phase = 'intro'; scrollTop = true; }
+  else if (a === 'export') { exportBackup(); return; }
+  else if (a === 'export-text') ui.exportText = !ui.exportText;
+  else if (a === 'import-cancel') ui.pendingImport = null;
+  else if (a === 'import-confirm') {
+    state = Object.assign(blank(), ui.pendingImport.data, { run: null });
+    if (!Array.isArray(state.history)) state.history = [];
+    ui.pendingImport = null; ui.progress = false; ui.exportText = false;
+    ui.backupMsg = 'Sicherung geladen.'; scrollTop = true;
+  }
+  else if (a === 'progress') { ui.progress = !ui.progress; scrollTop = true; }
+  else if (a === 'chart-ex') ui.chartEx = b.dataset.k;
+  else if (a === 'skip-warm') { unlockAudio(); const r = state.run; r.idx = r.steps.findIndex(x => !x.warm) - 1; advance(); return; }
+  else if (a === 'info') ui.info = ui.info === b.dataset.k ? null : b.dataset.k;
+  else if (a === 'check') {
+    const arr = state.checks[b.dataset.s] || [];
+    state.checks[b.dataset.s] = arr.includes(b.dataset.k) ? arr.filter(x => x !== b.dataset.k) : [...arr, b.dataset.k];
+  }
+  else if (a === 'start') { const t = +b.dataset.t; const short = !!b.dataset.short; state.run = { s: `w${state.week}t${t}`, t, short, idx: -1, steps: buildSteps(t, short), endAt: null, total: 0 }; ui.info = null; scrollTop = true; }
+  else if (a === 'go') { unlockAudio(); keepAwake(); advance(); return; }
+  else if (a === 'next') { unlockAudio(); advance(); return; }
+  else if (a === 'start-timer') { unlockAudio(); const cur = state.run.steps[state.run.idx]; state.run.total = cur.val; state.run.endAt = Date.now() + cur.val * 1000; }
+  else if (a === 'more-rest') { state.run.endAt += 15000; state.run.total += 15; }
+  else if (a === 'abort' || a === 'finish') { state.run = null; ui.info = null; releaseWake(); scrollTop = true; }
+  else if (a === 'close-week') { closeWeek(+document.getElementById('week-rpe').value); scrollTop = true; }
+  else if (a === 'new-cycle') { setupFrom(state.final); scrollTop = true; }
+  else if (a === 'ask-reset') ui.confirmReset = true;
+  else if (a === 'cancel-reset') ui.confirmReset = false;
+  else if (a === 'reset') { state = blank(); ui.confirmReset = false; ui.progress = false; scrollTop = true; }
+  else return;
+  save(); render();
+  if (scrollTop) window.scrollTo(0, 0);
+});
+
+app.addEventListener('change', e => {
+  if (e.target.id !== 'import-file' || !e.target.files[0]) return;
+  e.target.files[0].text().then(readImport).catch(() => { ui.backupMsg = 'Die Datei konnte nicht gelesen werden.'; render(); });
+});
+app.addEventListener('focusin', e => { if (e.target.id === 'backup-text') e.target.select(); });
+
+app.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target.elements, vals = {};
+  TEST.forEach(x => vals[x.k] = Math.max(0, parseInt(f[x.k].value, 10) || 0));
+  vals.rpe = +f.rpe.value;
+  state.history.push({ date: new Date().toISOString().slice(0, 10), v: vals });
+  if (state.phase === 'final') { state.final = vals; state.phase = 'done'; }
+  else setupFrom(vals);
+  save(); render(); window.scrollTo(0, 0);
+});
+
+render();
+</script>
+</body>
+</html>
